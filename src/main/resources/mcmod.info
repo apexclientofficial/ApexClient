@@ -1,0 +1,16 @@
+[
+{
+  "modid": "apex",
+  "name": "Apex Client",
+  "description": "Modern 1.8.9 Client",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Apex Team"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
