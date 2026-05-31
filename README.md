@@ -8,7 +8,7 @@
 
 Get access to real-time announcements, changelogs, config sharing, and direct support from the development team.
 
-* **Official Discord Server:** [Join our Discord](https://discord.gg/gAyUf7HMRR)
+* **Official Discord Server:** [Join our Discord](https://discord.gg/T2FeVbYw4n)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
