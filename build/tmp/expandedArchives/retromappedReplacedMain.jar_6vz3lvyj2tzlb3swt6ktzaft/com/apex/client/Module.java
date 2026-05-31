@@ -12,7 +12,7 @@ public abstract class Module {
     private final String name;
     private final String description;
     private final Category category;
-    private int key;
+    private final com.apex.client.setting.KeybindSetting keybind = new com.apex.client.setting.KeybindSetting(0);
     private boolean enabled;
     
     private final List<Setting> settings = new ArrayList<>();
@@ -21,11 +21,11 @@ public abstract class Module {
         this.name = name;
         this.description = description;
         this.category = category;
+        addSetting(keybind);
     }
 
-    protected void addSetting(Setting setting) {
-        setting.setParent(this);
-        this.settings.add(setting);
+    public void addSetting(Setting setting) {
+        settings.add(setting);
     }
 
     public List<Setting> getSettings() {
@@ -50,8 +50,8 @@ public abstract class Module {
     public String getDescription() { return description; }
     public Category getCategory() { return category; }
     public boolean isEnabled() { return enabled; }
-    public int getKey() { return key; }
-    public void setKey(int key) { this.key = key; }
+    public int getKey() { return keybind.getCode(); }
+    public void setKey(int key) { keybind.setCode(key); }
 
     public enum Category {
         COMBAT("Combat", "Swords"),

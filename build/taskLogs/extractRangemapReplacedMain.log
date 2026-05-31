@@ -1,9 +1,10 @@
 Symbol range map extraction starting
-Processing 52 files
+Processing 57 files
 processing com\apex\client\ApexClient.java
 processing com\apex\client\EventHandler.java
 processing com\apex\client\Module.java
 processing com\apex\client\ModuleManager.java
+processing com\apex\client\config\ConfigManager.java
 processing com\apex\client\gui\ApexGUI.java
 processing com\apex\client\gui\font\CustomFontRenderer.java
 processing com\apex\client\gui\hud\HUDRenderer.java
@@ -19,6 +20,7 @@ processing com\apex\client\module\combat\Reach.java
 processing com\apex\client\module\combat\TriggerBot.java
 processing com\apex\client\module\combat\Velocity.java
 processing com\apex\client\module\misc\ClickGUIModule.java
+processing com\apex\client\module\misc\Config.java
 processing com\apex\client\module\misc\HUD.java
 processing com\apex\client\module\movement\Fly.java
 processing com\apex\client\module\movement\Freecam.java
@@ -48,7 +50,10 @@ processing com\apex\client\module\render\Nametags.java
 processing com\apex\client\module\render\Tracers.java
 processing com\apex\client\module\render\Xray.java
 processing com\apex\client\setting\BooleanSetting.java
+processing com\apex\client\setting\KeybindSetting.java
 processing com\apex\client\setting\ModeSetting.java
 processing com\apex\client\setting\NumberSetting.java
 processing com\apex\client\setting\Setting.java
+processing com\apex\client\setting\StringSetting.java
+processing com\apex\client\util\SpotifyManager.java
 processing com\apex\client\util\TargetUtil.java

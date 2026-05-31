@@ -14,11 +14,21 @@ public class ApexClient {
     public static ApexClient instance;
 
     private ModuleManager moduleManager;
+    public com.apex.client.config.ConfigManager configManager;
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         moduleManager = new ModuleManager();
         moduleManager.init();
+
+        configManager = new com.apex.client.config.ConfigManager();
+        configManager.load();
+
+        com.apex.client.util.SpotifyManager.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            configManager.save();
+        }));
 
         MinecraftForge.EVENT_BUS.register(new EventHandler());
     }

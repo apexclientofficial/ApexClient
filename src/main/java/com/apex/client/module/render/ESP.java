@@ -14,14 +14,16 @@ import org.lwjgl.opengl.GL11;
 
 public class ESP extends Module {
 
-    private final BooleanSetting players = new BooleanSetting("Players", true);
+    private final com.apex.client.setting.ModeSetting targetMode = new com.apex.client.setting.ModeSetting("Target", "Players", "Players", "Mobs", "Animals", "All");
     private final BooleanSetting antiTeam = new BooleanSetting("AntiTeam", true);
+    private final com.apex.client.setting.ModeSetting colorMode = new com.apex.client.setting.ModeSetting("Color", "Red", "Red", "Blue", "Green", "White");
     private boolean registered = false;
 
     public ESP() {
         super("ESP", "Draws boxes around targets through walls", Category.RENDER);
-        addSetting(players);
+        addSetting(targetMode);
         addSetting(antiTeam);
+        addSetting(colorMode);
     }
 
     @Override
@@ -57,7 +59,7 @@ public class ESP extends Module {
         for (Entity entity : mc.theWorld.loadedEntityList) {
             if (!(entity instanceof EntityLivingBase)) continue;
 
-            if (TargetUtil.isValidTarget(entity, players.isEnabled(), antiTeam.isEnabled())) {
+            if (TargetUtil.isValidTarget(entity, targetMode.getValue(), antiTeam.isEnabled())) {
 
                 double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * event.partialTicks - mc.getRenderManager().viewerPosX;
                 double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * event.partialTicks - mc.getRenderManager().viewerPosY;
@@ -65,7 +67,12 @@ public class ESP extends Module {
 
                 AxisAlignedBB bb = entity.getEntityBoundingBox().offset(-entity.posX, -entity.posY, -entity.posZ).offset(x, y, z);
 
-                GL11.glColor4f(0.85f, 0.1f, 0.1f, 1.0f);
+                switch (colorMode.getValue()) {
+                    case "Blue": GL11.glColor4f(0.1f, 0.1f, 0.85f, 1.0f); break;
+                    case "Green": GL11.glColor4f(0.1f, 0.85f, 0.1f, 1.0f); break;
+                    case "White": GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f); break;
+                    case "Red": default: GL11.glColor4f(0.85f, 0.1f, 0.1f, 1.0f); break;
+                }
 
                 // Bottom ring
                 GL11.glBegin(GL11.GL_LINE_STRIP);

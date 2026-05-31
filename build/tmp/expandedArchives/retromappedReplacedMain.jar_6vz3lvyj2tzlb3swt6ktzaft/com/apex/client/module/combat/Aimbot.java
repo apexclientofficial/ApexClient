@@ -10,14 +10,16 @@ import net.minecraft.util.MathHelper;
 
 public class Aimbot extends Module {
     
-    private final NumberSetting range = new NumberSetting("Range", 4.2, 1.0, 8.0, 0.1);
-    private final BooleanSetting players = new BooleanSetting("Players", true);
+    private final NumberSetting range = new NumberSetting("Range", 4.2, 1.0, 6.0, 0.1);
+    private final NumberSetting fov = new NumberSetting("FOV", 90, 10, 360, 10);
+    private final com.apex.client.setting.ModeSetting targetMode = new com.apex.client.setting.ModeSetting("Target", "Players", "Players", "Mobs", "Animals", "All");
     private final BooleanSetting antiTeam = new BooleanSetting("AntiTeam", true);
 
     public Aimbot() {
         super("Aimbot", "Locks onto targets instantly", Category.COMBAT);
         addSetting(range);
-        addSetting(players);
+        addSetting(fov);
+        addSetting(targetMode);
         addSetting(antiTeam);
     }
 
@@ -38,7 +40,7 @@ public class Aimbot extends Module {
         for (Entity entity : mc.field_71441_e.field_72996_f) {
             if (!(entity instanceof EntityLivingBase)) continue;
             
-            if (TargetUtil.isValidTarget(entity, players.isEnabled(), antiTeam.isEnabled())) {
+            if (TargetUtil.isValidTarget(entity, targetMode.getValue(), antiTeam.isEnabled())) {
                 double dist = mc.field_71439_g.func_70032_d(entity);
                 if (dist <= closestDist) {
                     closestDist = dist;

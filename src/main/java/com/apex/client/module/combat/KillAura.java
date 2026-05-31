@@ -12,7 +12,7 @@ public class KillAura extends Module {
 
     private final NumberSetting range = new NumberSetting("Range", 4.2, 1.0, 6.0, 0.1);
     private final NumberSetting aps = new NumberSetting("APS", 10, 1, 20, 1);
-    private final BooleanSetting players = new BooleanSetting("Players", true);
+    private final com.apex.client.setting.ModeSetting targetMode = new com.apex.client.setting.ModeSetting("Target", "Players", "Players", "Mobs", "Animals", "All");
     private final BooleanSetting antiTeam = new BooleanSetting("AntiTeam", true);
 
     private long lastAttackTime;
@@ -21,7 +21,7 @@ public class KillAura extends Module {
         super("Aura", "Automatically attacks entities around you", Category.COMBAT);
         addSetting(range);
         addSetting(aps);
-        addSetting(players);
+        addSetting(targetMode);
         addSetting(antiTeam);
     }
 
@@ -38,7 +38,7 @@ public class KillAura extends Module {
         for (Entity entity : mc.theWorld.loadedEntityList) {
             if (!(entity instanceof EntityLivingBase)) continue;
             
-            if (TargetUtil.isValidTarget(entity, players.isEnabled(), antiTeam.isEnabled())) {
+            if (TargetUtil.isValidTarget(entity, targetMode.getValue(), antiTeam.isEnabled())) {
                 double dist = mc.thePlayer.getDistanceToEntity(entity);
                 if (dist <= closestDist) {
                     closestDist = dist;

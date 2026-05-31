@@ -6,20 +6,33 @@ import com.apex.client.module.misc.HUD;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class HUDRenderer {
     private static final Minecraft mc = Minecraft.getMinecraft();
+    private static final List<Long> clicks = new ArrayList<>();
 
     public static void renderHUD() {
         if (mc.gameSettings.showDebugInfo) return;
 
-        // Find HUD module
+        // CPS tracking
+        if (Mouse.isButtonDown(0)) {
+            if (clicks.isEmpty() || System.currentTimeMillis() - clicks.get(clicks.size() - 1) > 50) {
+                clicks.add(System.currentTimeMillis());
+            }
+        }
+        clicks.removeIf(time -> System.currentTimeMillis() - time > 1000);
+
         Module hudMod = ApexClient.instance.getModuleManager().getModuleByName("HUD");
         if (hudMod == null || !hudMod.isEnabled()) return;
         HUD hud = (HUD) hudMod;
+
+        int themeCol = com.apex.client.module.misc.ClickGUIModule.getThemeColor();
+        int themeColDark = com.apex.client.module.misc.ClickGUIModule.getThemeColorDark();
 
         ScaledResolution sr = new ScaledResolution(mc);
         int sw = sr.getScaledWidth();
@@ -28,57 +41,47 @@ public class HUDRenderer {
         // ── Top Bar ──────────────────────────────────────
         if (hud.isTopBarEnabled()) {
             Gui.drawRect(0, 0, sw, 14, 0xAA0A0A0A);
-            Gui.drawRect(0, 13, sw, 14, 0xFF330000);
+            Gui.drawRect(0, 13, sw, 14, themeColDark);
 
             StringBuilder topText = new StringBuilder();
-            topText.append("\u00a7cAPEX \u00a77v2.1");
+            topText.append("\u00a7cAPEX \u00a77v3.0");
             if (hud.isFPSEnabled()) {
                 topText.append(" \u00a78| \u00a7fFPS: ").append(Minecraft.getDebugFPS());
+            }
+            if (hud.isCPSEnabled()) {
+                topText.append(" \u00a78| \u00a7fCPS: ").append(clicks.size());
             }
             mc.fontRendererObj.drawStringWithShadow(topText.toString(), 4, 3, 0xFFFFFFFF);
         }
 
-        // ── Bottom Coordinates Panel ─────────────────────
-        if (hud.isCoordsEnabled() && mc.thePlayer != null) {
-            int baseX = hud.getCoordsXOffset();
-            int baseY = sh - 50 - hud.getCoordsYOffset();
+        // ── Keystrokes ───────────────────────────────────
+        if (hud.isKeystrokesEnabled() && mc.thePlayer != null) {
+            int baseX = hud.getKeysXOffset();
+            int baseY = hud.getKeysYOffset();
 
-            // Build lines dynamically
-            List<String> lines = new ArrayList<>();
-            lines.add("\u00a7cCoordinates");
-            lines.add(String.format("\u00a77X: \u00a7f%.1f  \u00a77Y: \u00a7f%.1f  \u00a77Z: \u00a7f%.1f",
-                    mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ));
+            // W A S D
+            drawKey(baseX + 22, baseY, 20, 20, Keyboard.KEY_W, "W", themeCol);
+            drawKey(baseX, baseY + 22, 20, 20, Keyboard.KEY_A, "A", themeCol);
+            drawKey(baseX + 22, baseY + 22, 20, 20, Keyboard.KEY_S, "S", themeCol);
+            drawKey(baseX + 44, baseY + 22, 20, 20, Keyboard.KEY_D, "D", themeCol);
 
-            StringBuilder extraLine = new StringBuilder();
-            if (hud.isYawEnabled()) {
-                extraLine.append(String.format("\u00a77Yaw: \u00a7f%.1f  ", mc.thePlayer.rotationYaw));
-            }
-            if (hud.isPitchEnabled()) {
-                extraLine.append(String.format("\u00a77Pitch: \u00a7f%.1f  ", mc.thePlayer.rotationPitch));
-            }
-            if (hud.isWorldEnabled()) {
-                extraLine.append("\u00a77World: \u00a7f").append(mc.theWorld.getProviderName());
-            }
-            if (extraLine.length() > 0) {
-                lines.add(extraLine.toString().trim());
-            }
+            // LMB RMB
+            drawMouse(baseX, baseY + 44, 31, 20, 0, "LMB", themeCol);
+            drawMouse(baseX + 33, baseY + 44, 31, 20, 1, "RMB", themeCol);
+        }
 
-            // Calculate panel width
-            int panelW = 10;
-            for (String l : lines) {
-                int w = mc.fontRendererObj.getStringWidth(l);
-                if (w + 16 > panelW) panelW = w + 16;
-            }
-            int panelH = 8 + lines.size() * 11;
-
-            // Draw panel background
-            Gui.drawRect(baseX, baseY, baseX + panelW, baseY + panelH, 0xAA0A0A0A);
-            Gui.drawRect(baseX, baseY, baseX + 2, baseY + panelH, 0xFFCC0000);
-
-            int ly = baseY + 4;
-            for (String l : lines) {
-                mc.fontRendererObj.drawStringWithShadow(l, baseX + 6, ly, 0xFFFFFFFF);
-                ly += 11;
+        // ── Spotify ──────────────────────────────────────
+        if (hud.isSpotifyEnabled() && mc.thePlayer != null) {
+            String track = com.apex.client.util.SpotifyManager.getCurrentTrack();
+            if (track != null && !track.isEmpty()) {
+                int sx = hud.getSpotXOffset();
+                int sy = hud.getSpotYOffset();
+                String display = "\u00a7a\u266B \u00a7f" + track;
+                int tw = mc.fontRendererObj.getStringWidth(display);
+                
+                Gui.drawRect(sx, sy, sx + tw + 8, sy + 14, 0xAA0A0A0A);
+                Gui.drawRect(sx, sy, sx + 2, sy + 14, 0xFF1DB954); // Spotify green
+                mc.fontRendererObj.drawStringWithShadow(display, sx + 5, sy + 3, 0xFFFFFFFF);
             }
         }
 
@@ -91,7 +94,6 @@ public class HUDRenderer {
                 }
             }
 
-            // Sort by string width descending
             enabledModules.sort((m1, m2) -> {
                 int w1 = mc.fontRendererObj.getStringWidth(m1.getName());
                 int w2 = mc.fontRendererObj.getStringWidth(m2.getName());
@@ -104,14 +106,26 @@ public class HUDRenderer {
                 int width = mc.fontRendererObj.getStringWidth(name);
                 int x = sw - width - 6;
 
-                // Background
                 Gui.drawRect(x - 4, y, sw, y + 12, 0x99080808);
-                // Red accent line
-                Gui.drawRect(sw - 2, y, sw, y + 12, 0xFFCC0000);
+                Gui.drawRect(sw - 2, y, sw, y + 12, themeCol);
 
                 mc.fontRendererObj.drawStringWithShadow(name, x - 2, y + 2, 0xFFFFFFFF);
                 y += 12;
             }
         }
+    }
+
+    private static void drawKey(int x, int y, int w, int h, int key, String name, int accent) {
+        boolean pressed = Keyboard.isKeyDown(key);
+        Gui.drawRect(x, y, x + w, y + h, pressed ? accent : 0x77000000);
+        int fw = mc.fontRendererObj.getStringWidth(name);
+        mc.fontRendererObj.drawStringWithShadow(name, x + (w - fw) / 2, y + (h - 8) / 2, pressed ? 0xFFFFFFFF : 0xFFAAAAAA);
+    }
+
+    private static void drawMouse(int x, int y, int w, int h, int btn, String name, int accent) {
+        boolean pressed = Mouse.isButtonDown(btn);
+        Gui.drawRect(x, y, x + w, y + h, pressed ? accent : 0x77000000);
+        int fw = mc.fontRendererObj.getStringWidth(name);
+        mc.fontRendererObj.drawStringWithShadow(name, x + (w - fw) / 2, y + (h - 8) / 2, pressed ? 0xFFFFFFFF : 0xFFAAAAAA);
     }
 }

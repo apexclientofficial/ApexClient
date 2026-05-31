@@ -16,6 +16,8 @@ public class EventHandler {
     public void onKeyInput(InputEvent.KeyInputEvent event) {
         if (Keyboard.getEventKeyState()) {
             int key = Keyboard.getEventKey();
+            if (key == 0) return; // Ignore unmapped/media keys
+
             if (key == Keyboard.KEY_RSHIFT) {
                 mc.displayGuiScreen(new ApexGUI());
             }

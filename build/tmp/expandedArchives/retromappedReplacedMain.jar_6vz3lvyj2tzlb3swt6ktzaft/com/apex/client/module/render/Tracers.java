@@ -13,14 +13,16 @@ import org.lwjgl.opengl.GL11;
 
 public class Tracers extends Module {
 
-    private final BooleanSetting players = new BooleanSetting("Players", true);
+    private final com.apex.client.setting.ModeSetting targetMode = new com.apex.client.setting.ModeSetting("Target", "Players", "Players", "Mobs", "Animals", "All");
     private final BooleanSetting antiTeam = new BooleanSetting("AntiTeam", true);
+    private final com.apex.client.setting.ModeSetting colorMode = new com.apex.client.setting.ModeSetting("Color", "Distance", "Distance", "Red", "Blue", "Green", "White");
     private boolean registered = false;
 
     public Tracers() {
         super("Tracers", "Draws lines to targets", Category.RENDER);
-        addSetting(players);
+        addSetting(targetMode);
         addSetting(antiTeam);
+        addSetting(colorMode);
     }
 
     @Override
@@ -62,17 +64,25 @@ public class Tracers extends Module {
         for (Entity entity : mc.field_71441_e.field_72996_f) {
             if (!(entity instanceof EntityLivingBase)) continue;
 
-            if (TargetUtil.isValidTarget(entity, players.isEnabled(), antiTeam.isEnabled())) {
+            if (TargetUtil.isValidTarget(entity, targetMode.getValue(), antiTeam.isEnabled())) {
 
                 double x = entity.field_70142_S + (entity.field_70165_t - entity.field_70142_S) * pt - mc.func_175598_ae().field_78730_l;
                 double y = entity.field_70137_T + (entity.field_70163_u - entity.field_70137_T) * pt - mc.func_175598_ae().field_78731_m;
                 double z = entity.field_70136_U + (entity.field_70161_v - entity.field_70136_U) * pt - mc.func_175598_ae().field_78728_n;
 
-                // Distance-based color: close=red, far=orange
-                float dist = mc.field_71439_g.func_70032_d(entity);
-                float r = 0.85f;
-                float g = Math.min(0.6f, dist / 40f);
-                GL11.glColor4f(r, g, 0.1f, 0.9f);
+                switch (colorMode.getValue()) {
+                    case "Blue": GL11.glColor4f(0.1f, 0.1f, 0.85f, 0.9f); break;
+                    case "Green": GL11.glColor4f(0.1f, 0.85f, 0.1f, 0.9f); break;
+                    case "White": GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.9f); break;
+                    case "Red": GL11.glColor4f(0.85f, 0.1f, 0.1f, 0.9f); break;
+                    case "Distance": 
+                    default:
+                        float dist = mc.field_71439_g.func_70032_d(entity);
+                        float r = 0.85f;
+                        float g = Math.min(0.6f, dist / 40f);
+                        GL11.glColor4f(r, g, 0.1f, 0.9f);
+                        break;
+                }
 
                 // Line from eye position to entity center
                 GL11.glVertex3d(eyeX, eyeY, eyeZ);

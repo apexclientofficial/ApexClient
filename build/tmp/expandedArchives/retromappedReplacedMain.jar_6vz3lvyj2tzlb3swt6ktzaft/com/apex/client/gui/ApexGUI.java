@@ -6,11 +6,14 @@ import com.apex.client.setting.BooleanSetting;
 import com.apex.client.setting.ModeSetting;
 import com.apex.client.setting.NumberSetting;
 import com.apex.client.setting.Setting;
+import com.apex.client.setting.StringSetting;
+import com.apex.client.setting.KeybindSetting;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
 import java.awt.Desktop;
@@ -24,7 +27,7 @@ public class ApexGUI extends GuiScreen {
     private int scrollY = 0;
 
     // Layout constants
-    private static final int ICON_BAR_WIDTH = 56;
+    private static final int ICON_BAR_WIDTH = 70;
     private static final int PANEL_X_OFFSET = 10;
     private static final int PANEL_Y_OFFSET = 10;
     private static final int MODULE_LIST_WIDTH = 170;
@@ -33,6 +36,8 @@ public class ApexGUI extends GuiScreen {
     private static final int SETTING_H_BOOL = 20;
     private static final int SETTING_H_NUM  = 28;
     private static final int SETTING_H_MODE = 20;
+    private static final int SETTING_H_BIND = 20;
+    private static final int SETTING_H_STR  = 20;
 
     // Slide out
     private Module selectedModule = null;
@@ -41,6 +46,12 @@ public class ApexGUI extends GuiScreen {
     // Slider drag
     private NumberSetting draggingSlider = null;
     private int draggingSliderX, draggingSliderW;
+
+    // Keybind state
+    private KeybindSetting listeningBind = null;
+
+    // String input state
+    private StringSetting listeningString = null;
 
     @Override
     public void func_73866_w_() {
@@ -76,22 +87,25 @@ public class ApexGUI extends GuiScreen {
         int panelY = PANEL_Y_OFFSET;
         int panelH = sh - PANEL_Y_OFFSET * 2;
 
+        int themeCol = com.apex.client.module.misc.ClickGUIModule.getThemeColor();
+        int themeColDark = com.apex.client.module.misc.ClickGUIModule.getThemeColorDark();
+
         // ----------- Icon sidebar -----------
         func_73734_a(PANEL_X_OFFSET, PANEL_Y_OFFSET, PANEL_X_OFFSET + ICON_BAR_WIDTH, PANEL_Y_OFFSET + panelH, 0xEE0D0D0D);
 
         // APEX logo at top of icon bar
-        drawApexLogo(PANEL_X_OFFSET + 7, PANEL_Y_OFFSET + 8);
+        drawApexLogo(PANEL_X_OFFSET + 7, PANEL_Y_OFFSET + 8, themeCol);
 
-        // Thin red separator below logo
-        func_73734_a(PANEL_X_OFFSET + 6, PANEL_Y_OFFSET + 32, PANEL_X_OFFSET + ICON_BAR_WIDTH - 6, PANEL_Y_OFFSET + 33, 0xFFCC0000);
+        // Thin accent separator below logo
+        func_73734_a(PANEL_X_OFFSET + 6, PANEL_Y_OFFSET + 32, PANEL_X_OFFSET + ICON_BAR_WIDTH - 6, PANEL_Y_OFFSET + 33, themeCol);
 
         // Category icon buttons
         int iconY = PANEL_Y_OFFSET + 42;
         for (Module.Category cat : Module.Category.values()) {
             boolean active = cat == currentCategory;
-            // Active: red accent bar on left
+            // Active: accent bar on left
             if (active) {
-                func_73734_a(PANEL_X_OFFSET, iconY - 2, PANEL_X_OFFSET + 3, iconY + 16, 0xFFCC0000);
+                func_73734_a(PANEL_X_OFFSET, iconY - 2, PANEL_X_OFFSET + 3, iconY + 16, themeCol);
                 func_73734_a(PANEL_X_OFFSET, iconY - 2, PANEL_X_OFFSET + ICON_BAR_WIDTH, iconY + 16, 0x22FFFFFF);
             }
             // Draw category short label centered in bar
@@ -119,7 +133,7 @@ public class ApexGUI extends GuiScreen {
         func_73734_a(panelX, panelY, panelX + MODULE_LIST_WIDTH, panelY + 26, 0xEE191919);
         String catName = currentCategory.name;
         field_146297_k.field_71466_p.func_175063_a(catName, panelX + 8, panelY + 9, 0xFFFFFFFF);
-        func_73734_a(panelX, panelY + 25, panelX + MODULE_LIST_WIDTH, panelY + 26, 0xFF330000);
+        func_73734_a(panelX, panelY + 25, panelX + MODULE_LIST_WIDTH, panelY + 26, themeColDark);
 
         // Clip and draw modules
         List<Module> modules = ApexClient.instance.getModuleManager().getModulesByCategory(currentCategory);
@@ -139,11 +153,12 @@ public class ApexGUI extends GuiScreen {
                 int rowBg = selected ? 0x331A0000 : (hovered ? 0x22FFFFFF : 0x00000000);
                 func_73734_a(panelX, modY, panelX + MODULE_LIST_WIDTH, modY + MODULE_H, rowBg);
 
-                // Enabled indicator dot
                 if (enabled) {
-                    func_73734_a(panelX + 4, modY + 8, panelX + 8, modY + 14, 0xFFCC0000);
+                    func_73734_a(panelX, modY, panelX + MODULE_LIST_WIDTH, modY + MODULE_H, 0x33FFFFFF);
+                    // indicator dot
+                    func_73734_a(panelX + 4, modY + (MODULE_H - 4) / 2, panelX + 8, modY + (MODULE_H + 4) / 2, themeCol);
                 } else {
-                    func_73734_a(panelX + 4, modY + 8, panelX + 8, modY + 14, 0xFF444444);
+                    func_73734_a(panelX + 4, modY + (MODULE_H - 4) / 2, panelX + 8, modY + (MODULE_H + 4) / 2, 0xFF555555);
                 }
 
                 // Module name
@@ -152,7 +167,7 @@ public class ApexGUI extends GuiScreen {
 
                 // Right-click hint (chevron if selected)
                 if (selected) {
-                    field_146297_k.field_71466_p.func_78276_b(">", panelX + MODULE_LIST_WIDTH - 12, modY + 7, 0xFFCC0000);
+                    field_146297_k.field_71466_p.func_78276_b(">", panelX + MODULE_LIST_WIDTH - 12, modY + 7, themeCol);
                 }
 
                 // Separator
@@ -185,8 +200,8 @@ public class ApexGUI extends GuiScreen {
 
             Module mod = selectedModule;
             if (mod != null) {
-                field_146297_k.field_71466_p.func_175063_a(mod.getName(), setX + 8, panelY + 9, 0xFFCC0000);
-                func_73734_a(setX, panelY + 25, setX + setW, panelY + 26, 0xFF330000);
+                field_146297_k.field_71466_p.func_175063_a(mod.getName(), setX + 8, panelY + 9, themeCol);
+                func_73734_a(setX, panelY + 25, setX + setW, panelY + 26, themeColDark);
 
                 int setY = panelY + 32;
                 for (Setting s : mod.getSettings()) {
@@ -194,8 +209,8 @@ public class ApexGUI extends GuiScreen {
                         BooleanSetting b = (BooleanSetting) s;
                         boolean val = b.isEnabled();
                         // Toggle track
-                        func_73734_a(setX + setW - 28, setY + 2, setX + setW - 8, setY + 12, val ? 0xFF330000 : 0xFF333333);
-                        func_73734_a(val ? setX + setW - 18 : setX + setW - 28, setY + 2, val ? setX + setW - 8 : setX + setW - 18, setY + 12, val ? 0xFFCC0000 : 0xFF666666);
+                        func_73734_a(setX + setW - 28, setY + 2, setX + setW - 8, setY + 12, val ? themeColDark : 0xFF333333);
+                        func_73734_a(val ? setX + setW - 18 : setX + setW - 28, setY + 2, val ? setX + setW - 8 : setX + setW - 18, setY + 12, val ? themeCol : 0xFF666666);
                         field_146297_k.field_71466_p.func_78276_b(s.getName(), setX + 8, setY + 3, 0xFFDDDDDD);
                         setY += SETTING_H_BOOL;
                     } else if (s instanceof NumberSetting) {
@@ -208,7 +223,7 @@ public class ApexGUI extends GuiScreen {
                         func_73734_a(sliderX, setY + 11, sliderX + sliderW, setY + 18, 0xFF333333);
                         // Fill
                         int fill = (int) (sliderW * n.getPercentage());
-                        func_73734_a(sliderX, setY + 11, sliderX + fill, setY + 18, 0xFFCC0000);
+                        func_73734_a(sliderX, setY + 11, sliderX + fill, setY + 18, themeCol);
                         // Thumb
                         func_73734_a(sliderX + fill - 2, setY + 9, sliderX + fill + 2, setY + 20, 0xFFFFFFFF);
                         setY += SETTING_H_NUM;
@@ -217,8 +232,27 @@ public class ApexGUI extends GuiScreen {
                         field_146297_k.field_71466_p.func_78276_b(s.getName() + ":", setX + 8, setY + 3, 0xFFDDDDDD);
                         String val = m2.getValue();
                         int vw = field_146297_k.field_71466_p.func_78256_a(val);
-                        field_146297_k.field_71466_p.func_78276_b(val, setX + setW - vw - 8, setY + 3, 0xFFCC0000);
+                        field_146297_k.field_71466_p.func_78276_b(val, setX + setW - vw - 8, setY + 3, themeCol);
                         setY += SETTING_H_MODE;
+                    } else if (s instanceof KeybindSetting) {
+                        KeybindSetting k = (KeybindSetting) s;
+                        field_146297_k.field_71466_p.func_78276_b("Bind:", setX + 8, setY + 3, 0xFFDDDDDD);
+                        String val = (listeningBind == k) ? "Listening..." : k.getKeyName();
+                        int vw = field_146297_k.field_71466_p.func_78256_a(val);
+                        field_146297_k.field_71466_p.func_78276_b(val, setX + setW - vw - 8, setY + 3, themeCol);
+                        setY += SETTING_H_BIND;
+                    } else if (s instanceof StringSetting) {
+                        StringSetting str = (StringSetting) s;
+                        field_146297_k.field_71466_p.func_78276_b(s.getName() + ":", setX + 8, setY + 3, 0xFFDDDDDD);
+                        String val = str.getValue() + (listeningString == str && (System.currentTimeMillis() % 1000 < 500) ? "_" : "");
+                        int vw = field_146297_k.field_71466_p.func_78256_a(val);
+                        // If string is too wide, truncate
+                        if (vw > setW - 60) {
+                            val = "..." + val.substring(Math.max(0, val.length() - 10));
+                            vw = field_146297_k.field_71466_p.func_78256_a(val);
+                        }
+                        field_146297_k.field_71466_p.func_78276_b(val, setX + setW - vw - 8, setY + 3, (listeningString == str) ? 0xFFFFFFFF : themeCol);
+                        setY += SETTING_H_STR;
                     }
                     // Separator
                     func_73734_a(setX + 4, setY - 1, setX + setW - 4, setY, 0x22FFFFFF);
@@ -238,23 +272,23 @@ public class ApexGUI extends GuiScreen {
     }
 
     /** Draw a stylized "APEX" text logo */
-    private void drawApexLogo(int x, int y) {
+    private void drawApexLogo(int x, int y, int color) {
         GlStateManager.func_179094_E();
         GlStateManager.func_179152_a(0.8f, 0.8f, 1f);
         int sx = (int)(x / 0.8f);
         int sy = (int)(y / 0.8f);
-        field_146297_k.field_71466_p.func_78276_b("APEX", sx, sy, 0xFFCC0000);
+        field_146297_k.field_71466_p.func_78276_b("APEX", sx, sy, color);
         GlStateManager.func_179121_F();
     }
 
     private String getCategoryIcon(Module.Category cat) {
         switch (cat) {
-            case COMBAT:   return "PVP";
-            case MOVEMENT: return "MOV";
-            case PLAYER:   return "PLR";
-            case RENDER:   return "VIS";
-            case MISC:     return "MSC";
-            default:       return cat.name.substring(0, 3).toUpperCase();
+            case COMBAT:   return "COMBAT";
+            case MOVEMENT: return "MOVEMENT";
+            case PLAYER:   return "PLAYER";
+            case RENDER:   return "RENDER";
+            case MISC:     return "MISC";
+            default:       return cat.name;
         }
     }
 
@@ -271,7 +305,7 @@ public class ApexGUI extends GuiScreen {
         if (mouseX >= PANEL_X_OFFSET && mouseX < PANEL_X_OFFSET + ICON_BAR_WIDTH
                 && mouseY >= discordY && mouseY < discordY + 18) {
             try {
-                Desktop.getDesktop().browse(new URI("https://discord.gg/xzq99sxPsQ"));
+                Desktop.getDesktop().browse(new URI("https://discord.gg/T2FeVbYw4n"));
             } catch (Exception ignored) {}
             return;
         }
@@ -346,12 +380,62 @@ public class ApexGUI extends GuiScreen {
                             return;
                         }
                         setY += SETTING_H_MODE;
+                    } else if (s instanceof KeybindSetting) {
+                        KeybindSetting k = (KeybindSetting) s;
+                        if (mouseY >= setY && mouseY < setY + SETTING_H_BIND) {
+                            if (mouseButton == 0) {
+                                listeningBind = k;
+                            } else if (mouseButton == 1) {
+                                k.setCode(0); // clear
+                            }
+                            return;
+                        }
+                        setY += SETTING_H_BIND;
+                    } else if (s instanceof StringSetting) {
+                        StringSetting str = (StringSetting) s;
+                        if (mouseY >= setY && mouseY < setY + SETTING_H_STR) {
+                            if (mouseButton == 0) {
+                                listeningString = str;
+                            } else if (mouseButton == 1) {
+                                str.setValue(""); // clear
+                            }
+                            return;
+                        }
+                        setY += SETTING_H_STR;
                     }
                 }
             }
         }
 
         super.func_73864_a(mouseX, mouseY, mouseButton);
+    }
+
+    @Override
+    protected void func_73869_a(char typedChar, int keyCode) throws IOException {
+        if (listeningBind != null) {
+            if (keyCode == Keyboard.KEY_ESCAPE || keyCode == Keyboard.KEY_DELETE) {
+                listeningBind.setCode(0);
+            } else {
+                listeningBind.setCode(keyCode);
+            }
+            listeningBind = null;
+            return;
+        }
+
+        if (listeningString != null) {
+            if (keyCode == Keyboard.KEY_ESCAPE || keyCode == Keyboard.KEY_RETURN) {
+                listeningString = null;
+            } else if (keyCode == Keyboard.KEY_BACK) {
+                String val = listeningString.getValue();
+                if (val.length() > 0) {
+                    listeningString.setValue(val.substring(0, val.length() - 1));
+                }
+            } else if (net.minecraft.util.ChatAllowedCharacters.func_71566_a(typedChar)) {
+                listeningString.setValue(listeningString.getValue() + typedChar);
+            }
+            return;
+        }
+        super.func_73869_a(typedChar, keyCode);
     }
 
     @Override

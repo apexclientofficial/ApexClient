@@ -62,6 +62,7 @@ public class ModuleManager {
         // ── Misc ────────────────────────────────────────────
         add(new HUD());
         add(new ClickGUIModule());
+        add(new Config());
     }
 
     private void add(Module m) {
