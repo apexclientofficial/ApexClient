@@ -1,6 +1,6 @@
 # ApexClient
 
-> **Important Notice:** This repository is the **only** official page to download the authentic ApexClient executable, excluding our official community Discord server. Do not download this client from any other third-party websites or unverified sources.
+> **Important Notice:** This repository is the **only** official page to download the authentic ApexClient Jar File, excluding our official community Discord server. Do not download this client from any other third-party websites or unverified sources.
 
 ---
 
