@@ -5,6 +5,7 @@ import com.apex.client.setting.BooleanSetting;
 import com.apex.client.setting.NumberSetting;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -45,10 +46,10 @@ public class Nametags extends Module {
             double z = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * event.partialTicks - mc.getRenderManager().viewerPosZ;
 
             String name = player.getName();
-            if (health.isEnabled()) name += " §c" + (int)player.getHealth() + "§7hp";
+            if (health.isEnabled()) name += " \u00a7c" + (int)player.getHealth() + "\u00a77hp";
             if (distance.isEnabled()) {
                 int dist = (int)mc.thePlayer.getDistanceToEntity(player);
-                name += " §7[" + dist + "m]";
+                name += " \u00a77[" + dist + "m]";
             }
 
             GlStateManager.pushMatrix();
@@ -60,10 +61,21 @@ public class Nametags extends Module {
             GlStateManager.enableBlend();
             GlStateManager.depthMask(false);
             int sw = mc.fontRendererObj.getStringWidth(name);
+            
+            // Draw background
+            net.minecraft.client.gui.Gui.drawRect(-sw / 2 - 2, -2, sw / 2 + 2, 9, 0x55000000);
+            
             mc.fontRendererObj.drawStringWithShadow(name, -sw / 2f, 0, 0xFFFFFFFF);
             GlStateManager.depthMask(true);
             GlStateManager.enableDepth();
             GlStateManager.popMatrix();
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderLivingPre(net.minecraftforge.client.event.RenderLivingEvent.Specials.Pre<EntityLivingBase> event) {
+        if (event.entity instanceof EntityPlayer && event.entity != mc.thePlayer) {
+            event.setCanceled(true); // Cancel vanilla nametag rendering
         }
     }
 }

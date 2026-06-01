@@ -32,7 +32,7 @@ public class ConfigManager {
     public void save() { save("default"); }
     public void load() { load("default"); }
 
-    public void save(String name) {
+        public void save(String name) {
         File configFile = new File(dir, name + ".json");
         JsonObject json = new JsonObject();
         for (Module m : ApexClient.instance.getModuleManager().getModules()) {
@@ -50,6 +50,11 @@ public class ConfigManager {
                     settingsJson.addProperty(s.getName(), ((ModeSetting) s).getValue());
                 } else if (s instanceof com.apex.client.setting.StringSetting) {
                     settingsJson.addProperty(s.getName(), ((com.apex.client.setting.StringSetting) s).getValue());
+                } else if (s instanceof com.apex.client.setting.ColorSetting) {
+                    com.apex.client.setting.ColorSetting c = (com.apex.client.setting.ColorSetting) s;
+                    settingsJson.addProperty(s.getName() + "_R", c.getR());
+                    settingsJson.addProperty(s.getName() + "_G", c.getG());
+                    settingsJson.addProperty(s.getName() + "_B", c.getB());
                 }
             }
             modJson.add("settings", settingsJson);
@@ -98,6 +103,13 @@ public class ConfigManager {
                                     ((ModeSetting) s).setValue(settingsJson.get(s.getName()).getAsString());
                                 } else if (s instanceof com.apex.client.setting.StringSetting) {
                                     ((com.apex.client.setting.StringSetting) s).setValue(settingsJson.get(s.getName()).getAsString());
+                                }
+                            } else if (s instanceof com.apex.client.setting.ColorSetting) {
+                                if (settingsJson.has(s.getName() + "_R") && settingsJson.has(s.getName() + "_G") && settingsJson.has(s.getName() + "_B")) {
+                                    com.apex.client.setting.ColorSetting c = (com.apex.client.setting.ColorSetting) s;
+                                    c.setR(settingsJson.get(s.getName() + "_R").getAsInt());
+                                    c.setG(settingsJson.get(s.getName() + "_G").getAsInt());
+                                    c.setB(settingsJson.get(s.getName() + "_B").getAsInt());
                                 }
                             }
                         }

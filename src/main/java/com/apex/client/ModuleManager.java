@@ -58,11 +58,14 @@ public class ModuleManager {
         add(new Chams());
         add(new Xray());
         add(new FullBright());
+        add(new HandView());
 
         // ── Misc ────────────────────────────────────────────
         add(new HUD());
+        add(new HUDColor());
         add(new ClickGUIModule());
         add(new Config());
+        add(new PacketSpoof());
     }
 
     private void add(Module m) {

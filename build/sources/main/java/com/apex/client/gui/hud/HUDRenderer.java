@@ -31,8 +31,8 @@ public class HUDRenderer {
         if (hudMod == null || !hudMod.isEnabled()) return;
         HUD hud = (HUD) hudMod;
 
-        int themeCol = com.apex.client.module.misc.ClickGUIModule.getThemeColor();
-        int themeColDark = com.apex.client.module.misc.ClickGUIModule.getThemeColorDark();
+        int themeCol = com.apex.client.module.misc.HUDColor.getColor();
+        int themeColDark = com.apex.client.module.misc.HUDColor.getColorDark();
 
         ScaledResolution sr = new ScaledResolution(mc);
         int sw = sr.getScaledWidth();
@@ -44,7 +44,7 @@ public class HUDRenderer {
             Gui.drawRect(0, 13, sw, 14, themeColDark);
 
             StringBuilder topText = new StringBuilder();
-            topText.append("\u00a7cAPEX \u00a77v3.0");
+            topText.append("\u00a7cAPEX \u00a77v4.0");
             if (hud.isFPSEnabled()) {
                 topText.append(" \u00a78| \u00a7fFPS: ").append(Minecraft.getDebugFPS());
             }
@@ -112,6 +112,15 @@ public class HUDRenderer {
                 mc.fontRendererObj.drawStringWithShadow(name, x - 2, y + 2, 0xFFFFFFFF);
                 y += 12;
             }
+        }
+
+        // ── Discord Link (Bottom Left) ──────────────────
+        if (mc.thePlayer != null) {
+            String dcText = "\u00a78[\u00a75Discord\u00a78] \u00a77discord.gg/T2FeVbYw4n";
+            int dcTw = mc.fontRendererObj.getStringWidth(dcText);
+            Gui.drawRect(2, sh - 16, dcTw + 10, sh - 2, 0x99080808);
+            Gui.drawRect(2, sh - 16, 4, sh - 2, 0xFF5865F2);
+            mc.fontRendererObj.drawStringWithShadow(dcText, 6, sh - 13, 0xFFFFFFFF);
         }
     }
 

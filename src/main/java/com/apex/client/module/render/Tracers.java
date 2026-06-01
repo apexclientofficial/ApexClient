@@ -15,7 +15,8 @@ public class Tracers extends Module {
 
     private final com.apex.client.setting.ModeSetting targetMode = new com.apex.client.setting.ModeSetting("Target", "Players", "Players", "Mobs", "Animals", "All");
     private final BooleanSetting antiTeam = new BooleanSetting("AntiTeam", true);
-    private final com.apex.client.setting.ModeSetting colorMode = new com.apex.client.setting.ModeSetting("Color", "Distance", "Distance", "Red", "Blue", "Green", "White");
+    private final com.apex.client.setting.ModeSetting colorMode = new com.apex.client.setting.ModeSetting("ColorMode", "Distance", "Distance", "Theme", "Rainbow", "Custom");
+    private final com.apex.client.setting.ColorSetting customColor = new com.apex.client.setting.ColorSetting("CustomColor", 255, 255, 255);
     private boolean registered = false;
 
     public Tracers() {
@@ -23,6 +24,7 @@ public class Tracers extends Module {
         addSetting(targetMode);
         addSetting(antiTeam);
         addSetting(colorMode);
+        addSetting(customColor);
     }
 
     @Override
@@ -70,19 +72,23 @@ public class Tracers extends Module {
                 double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * pt - mc.getRenderManager().viewerPosY;
                 double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * pt - mc.getRenderManager().viewerPosZ;
 
+                int color;
                 switch (colorMode.getValue()) {
-                    case "Blue": GL11.glColor4f(0.1f, 0.1f, 0.85f, 0.9f); break;
-                    case "Green": GL11.glColor4f(0.1f, 0.85f, 0.1f, 0.9f); break;
-                    case "White": GL11.glColor4f(1.0f, 1.0f, 1.0f, 0.9f); break;
-                    case "Red": GL11.glColor4f(0.85f, 0.1f, 0.1f, 0.9f); break;
+                    case "Rainbow": color = java.awt.Color.HSBtoRGB((System.currentTimeMillis() % 4000L) / 4000f, 1f, 1f) | 0xFF000000; break;
+                    case "Custom":  color = customColor.getRGB() | 0xFF000000; break;
+                    case "Theme":   color = com.apex.client.module.misc.ClickGUIModule.getThemeColor(); break;
                     case "Distance": 
                     default:
                         float dist = mc.thePlayer.getDistanceToEntity(entity);
-                        float r = 0.85f;
-                        float g = Math.min(0.6f, dist / 40f);
-                        GL11.glColor4f(r, g, 0.1f, 0.9f);
+                        float gVal = Math.min(0.6f, dist / 40f);
+                        color = new java.awt.Color(0.85f, gVal, 0.1f, 0.9f).getRGB();
                         break;
                 }
+                
+                float r = ((color >> 16) & 0xFF) / 255f;
+                float g = ((color >> 8) & 0xFF) / 255f;
+                float b = (color & 0xFF) / 255f;
+                GL11.glColor4f(r, g, b, 0.9f);
 
                 // Line from eye position to entity center
                 GL11.glVertex3d(eyeX, eyeY, eyeZ);

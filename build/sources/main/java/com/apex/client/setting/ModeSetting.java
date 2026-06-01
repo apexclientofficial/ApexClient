@@ -7,12 +7,17 @@ public class ModeSetting extends Setting {
 
     private String value;
     private final List<String> modes;
+    private boolean open;
 
     public ModeSetting(String name, String defaultValue, String... modes) {
         super(name);
         this.value = defaultValue;
         this.modes = Arrays.asList(modes);
+        this.open = false;
     }
+
+    public boolean isOpen() { return open; }
+    public void setOpen(boolean open) { this.open = open; }
 
     public String getValue() {
         return value;

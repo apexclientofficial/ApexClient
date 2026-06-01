@@ -39,17 +39,50 @@ public class TargetUtil {
         return true;
     }
 
-    private static boolean isOnSameTeam(EntityPlayer other) {
-        if (mc.field_71439_g.func_96124_cp() != null && other.func_96124_cp() != null) {
-            return mc.field_71439_g.func_96124_cp().func_142054_a(other.func_96124_cp());
+    public static boolean isOnSameTeam(EntityPlayer target) {
+        if (mc.field_71439_g == null || target == null) return false;
+
+        if (mc.field_71439_g.func_96124_cp() != null && target.func_96124_cp() != null) {
+            if (mc.field_71439_g.func_96124_cp().func_142054_a(target.func_96124_cp())) {
+                return true;
+            }
         }
         
-        // Hypixel/Server generic team color check
+        // Backup color check
         String myName = mc.field_71439_g.func_145748_c_().func_150254_d();
-        String otherName = other.func_145748_c_().func_150254_d();
-        if (myName.length() > 2 && otherName.length() > 2) {
-            if (myName.charAt(0) == '\u00a7' && otherName.charAt(0) == '\u00a7') {
-                return myName.charAt(1) == otherName.charAt(1);
+        String targetName = target.func_145748_c_().func_150254_d();
+        if (myName.length() >= 2 && targetName.length() >= 2) {
+            if (myName.startsWith("\u00a7") && targetName.startsWith("\u00a7")) {
+                char myColor = myName.charAt(1);
+                if (myColor == targetName.charAt(1)) {
+                    if (myColor != 'f' && myColor != 'r' && myColor != '7' && myColor != '8') {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // Leather Armor Dye check (for Bedwars/Skywars etc.)
+        if (mc.field_71439_g.field_71071_by != null && target.field_71071_by != null) {
+            for (net.minecraft.item.ItemStack myArmor : mc.field_71439_g.field_71071_by.field_70460_b) {
+                if (myArmor != null && myArmor.func_77973_b() instanceof net.minecraft.item.ItemArmor) {
+                    net.minecraft.item.ItemArmor myItemArmor = (net.minecraft.item.ItemArmor) myArmor.func_77973_b();
+                    if (myItemArmor.func_82812_d() == net.minecraft.item.ItemArmor.ArmorMaterial.LEATHER) {
+                        int myColor = myItemArmor.func_82814_b(myArmor);
+                        if (myColor != -1 && myColor != 10511680) { // 10511680 is default un-dyed leather
+                            for (net.minecraft.item.ItemStack targetArmor : target.field_71071_by.field_70460_b) {
+                                if (targetArmor != null && targetArmor.func_77973_b() instanceof net.minecraft.item.ItemArmor) {
+                                    net.minecraft.item.ItemArmor targetItemArmor = (net.minecraft.item.ItemArmor) targetArmor.func_77973_b();
+                                    if (targetItemArmor.func_82812_d() == net.minecraft.item.ItemArmor.ArmorMaterial.LEATHER) {
+                                        if (targetItemArmor.func_82814_b(targetArmor) == myColor) {
+                                            return true; // Match found
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         

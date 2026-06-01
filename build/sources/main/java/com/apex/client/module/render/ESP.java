@@ -16,7 +16,8 @@ public class ESP extends Module {
 
     private final com.apex.client.setting.ModeSetting targetMode = new com.apex.client.setting.ModeSetting("Target", "Players", "Players", "Mobs", "Animals", "All");
     private final BooleanSetting antiTeam = new BooleanSetting("AntiTeam", true);
-    private final com.apex.client.setting.ModeSetting colorMode = new com.apex.client.setting.ModeSetting("Color", "Red", "Red", "Blue", "Green", "White");
+    private final com.apex.client.setting.ModeSetting colorMode = new com.apex.client.setting.ModeSetting("ColorMode", "Theme", "Theme", "Rainbow", "Custom");
+    private final com.apex.client.setting.ColorSetting customColor = new com.apex.client.setting.ColorSetting("CustomColor", 255, 255, 255);
     private boolean registered = false;
 
     public ESP() {
@@ -24,6 +25,7 @@ public class ESP extends Module {
         addSetting(targetMode);
         addSetting(antiTeam);
         addSetting(colorMode);
+        addSetting(customColor);
     }
 
     @Override
@@ -67,12 +69,16 @@ public class ESP extends Module {
 
                 AxisAlignedBB bb = entity.getEntityBoundingBox().offset(-entity.posX, -entity.posY, -entity.posZ).offset(x, y, z);
 
+                int color;
                 switch (colorMode.getValue()) {
-                    case "Blue": GL11.glColor4f(0.1f, 0.1f, 0.85f, 1.0f); break;
-                    case "Green": GL11.glColor4f(0.1f, 0.85f, 0.1f, 1.0f); break;
-                    case "White": GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f); break;
-                    case "Red": default: GL11.glColor4f(0.85f, 0.1f, 0.1f, 1.0f); break;
+                    case "Rainbow": color = java.awt.Color.HSBtoRGB((System.currentTimeMillis() % 4000L) / 4000f, 1f, 1f) | 0xFF000000; break;
+                    case "Custom":  color = customColor.getRGB() | 0xFF000000; break;
+                    case "Theme": default: color = com.apex.client.module.misc.ClickGUIModule.getThemeColor(); break;
                 }
+                float r = ((color >> 16) & 0xFF) / 255f;
+                float g = ((color >> 8) & 0xFF) / 255f;
+                float b = (color & 0xFF) / 255f;
+                GL11.glColor4f(r, g, b, 1.0f);
 
                 // Bottom ring
                 GL11.glBegin(GL11.GL_LINE_STRIP);

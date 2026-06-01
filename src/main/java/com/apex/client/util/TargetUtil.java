@@ -39,17 +39,50 @@ public class TargetUtil {
         return true;
     }
 
-    private static boolean isOnSameTeam(EntityPlayer other) {
-        if (mc.thePlayer.getTeam() != null && other.getTeam() != null) {
-            return mc.thePlayer.getTeam().isSameTeam(other.getTeam());
+    public static boolean isOnSameTeam(EntityPlayer target) {
+        if (mc.thePlayer == null || target == null) return false;
+
+        if (mc.thePlayer.getTeam() != null && target.getTeam() != null) {
+            if (mc.thePlayer.getTeam().isSameTeam(target.getTeam())) {
+                return true;
+            }
         }
         
-        // Hypixel/Server generic team color check
+        // Backup color check
         String myName = mc.thePlayer.getDisplayName().getFormattedText();
-        String otherName = other.getDisplayName().getFormattedText();
-        if (myName.length() > 2 && otherName.length() > 2) {
-            if (myName.charAt(0) == '\u00a7' && otherName.charAt(0) == '\u00a7') {
-                return myName.charAt(1) == otherName.charAt(1);
+        String targetName = target.getDisplayName().getFormattedText();
+        if (myName.length() >= 2 && targetName.length() >= 2) {
+            if (myName.startsWith("\u00a7") && targetName.startsWith("\u00a7")) {
+                char myColor = myName.charAt(1);
+                if (myColor == targetName.charAt(1)) {
+                    if (myColor != 'f' && myColor != 'r' && myColor != '7' && myColor != '8') {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // Leather Armor Dye check (for Bedwars/Skywars etc.)
+        if (mc.thePlayer.inventory != null && target.inventory != null) {
+            for (net.minecraft.item.ItemStack myArmor : mc.thePlayer.inventory.armorInventory) {
+                if (myArmor != null && myArmor.getItem() instanceof net.minecraft.item.ItemArmor) {
+                    net.minecraft.item.ItemArmor myItemArmor = (net.minecraft.item.ItemArmor) myArmor.getItem();
+                    if (myItemArmor.getArmorMaterial() == net.minecraft.item.ItemArmor.ArmorMaterial.LEATHER) {
+                        int myColor = myItemArmor.getColor(myArmor);
+                        if (myColor != -1 && myColor != 10511680) { // 10511680 is default un-dyed leather
+                            for (net.minecraft.item.ItemStack targetArmor : target.inventory.armorInventory) {
+                                if (targetArmor != null && targetArmor.getItem() instanceof net.minecraft.item.ItemArmor) {
+                                    net.minecraft.item.ItemArmor targetItemArmor = (net.minecraft.item.ItemArmor) targetArmor.getItem();
+                                    if (targetItemArmor.getArmorMaterial() == net.minecraft.item.ItemArmor.ArmorMaterial.LEATHER) {
+                                        if (targetItemArmor.getColor(targetArmor) == myColor) {
+                                            return true; // Match found
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         

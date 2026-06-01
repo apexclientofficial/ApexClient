@@ -8,13 +8,18 @@ import net.minecraft.entity.Entity;
 import org.lwjgl.input.Mouse;
 
 public class AutoClicker extends Module {
-    private final NumberSetting cps = new NumberSetting("CPS", 12, 1, 20, 1);
+    private final com.apex.client.setting.ModeSetting mode = new com.apex.client.setting.ModeSetting("Mode", "Stable", "Stable", "Random");
+    private final NumberSetting minCps = new NumberSetting("Min CPS", 8, 1, 20, 1);
+    private final NumberSetting maxCps = new NumberSetting("Max CPS", 12, 1, 20, 1);
     private final BooleanSetting holdOnly = new BooleanSetting("HoldOnly", true);
     private long lastClick = 0;
+    private long nextDelay = 0;
 
     public AutoClicker() {
         super("AutoClicker", "Automatically clicks for you", Category.COMBAT);
-        addSetting(cps);
+        addSetting(mode);
+        addSetting(minCps);
+        addSetting(maxCps);
         addSetting(holdOnly);
     }
 
@@ -26,8 +31,17 @@ public class AutoClicker extends Module {
         // Only click if left mouse is held (or holdOnly is off)
         if (holdOnly.isEnabled() && !Mouse.isButtonDown(0)) return;
 
-        long delay = (long)(1000.0 / cps.getValue());
-        if (System.currentTimeMillis() - lastClick < delay) return;
+        if (System.currentTimeMillis() - lastClick < nextDelay) return;
+
+        // Calculate next delay
+        if (mode.is("Stable")) {
+            nextDelay = (long)(1000.0 / maxCps.getValue());
+        } else {
+            double min = Math.min(minCps.getValue(), maxCps.getValue());
+            double max = Math.max(minCps.getValue(), maxCps.getValue());
+            double currentCps = min + Math.random() * (max - min);
+            nextDelay = (long)(1000.0 / currentCps);
+        }
 
         // Swing + attack whatever we're looking at
         mc.field_71439_g.func_71038_i();

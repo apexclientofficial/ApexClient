@@ -1,5 +1,5 @@
 Symbol range map extraction starting
-Processing 57 files
+Processing 63 files
 processing com\apex\client\ApexClient.java
 processing com\apex\client\EventHandler.java
 processing com\apex\client\Module.java
@@ -22,6 +22,8 @@ processing com\apex\client\module\combat\Velocity.java
 processing com\apex\client\module\misc\ClickGUIModule.java
 processing com\apex\client\module\misc\Config.java
 processing com\apex\client\module\misc\HUD.java
+processing com\apex\client\module\misc\HUDColor.java
+processing com\apex\client\module\misc\PacketSpoof.java
 processing com\apex\client\module\movement\Fly.java
 processing com\apex\client\module\movement\Freecam.java
 processing com\apex\client\module\movement\InventoryMove.java
@@ -45,11 +47,15 @@ processing com\apex\client\module\player\Regen.java
 processing com\apex\client\module\render\Chams.java
 processing com\apex\client\module\render\ESP.java
 processing com\apex\client\module\render\FullBright.java
+processing com\apex\client\module\render\HandView.java
+processing com\apex\client\module\render\HandViewRenderer.java
 processing com\apex\client\module\render\ItemESP.java
 processing com\apex\client\module\render\Nametags.java
 processing com\apex\client\module\render\Tracers.java
 processing com\apex\client\module\render\Xray.java
 processing com\apex\client\setting\BooleanSetting.java
+processing com\apex\client\setting\ButtonSetting.java
+processing com\apex\client\setting\ColorSetting.java
 processing com\apex\client\setting\KeybindSetting.java
 processing com\apex\client\setting\ModeSetting.java
 processing com\apex\client\setting\NumberSetting.java

@@ -6,12 +6,12 @@ import com.apex.client.setting.ModeSetting;
 public class ClickGUIModule extends Module {
     private static ClickGUIModule instance;
     private final ModeSetting theme = new ModeSetting("Theme", "Red", "Red", "Purple", "Gold", "White", "Green", "Rainbow", "Custom");
-    private final com.apex.client.setting.NumberSetting customHue = new com.apex.client.setting.NumberSetting("Hue", 0.0, 0.0, 1.0, 0.01);
+    private final com.apex.client.setting.ColorSetting customColor = new com.apex.client.setting.ColorSetting("CustomColor", 255, 0, 0);
 
     public ClickGUIModule() {
         super("ClickGUI", "Opens the Apex Client GUI", Category.MISC);
         addSetting(theme);
-        addSetting(customHue);
+        addSetting(customColor);
         instance = this;
     }
 
@@ -23,22 +23,19 @@ public class ClickGUIModule extends Module {
             case "White":  return 0xFFFFFFFF;
             case "Green":  return 0xFF2ECC71;
             case "Rainbow": return java.awt.Color.HSBtoRGB((System.currentTimeMillis() % 4000L) / 4000f, 1f, 1f) | 0xFF000000;
-            case "Custom":  return java.awt.Color.HSBtoRGB((float)instance.customHue.getValue(), 1f, 1f) | 0xFF000000;
+            case "Custom":  return instance.customColor.getRGB() | 0xFF000000;
             case "Red": default: return 0xFFCC0000;
         }
     }
 
     public static int getThemeColorDark() {
         if (instance == null) return 0xFF330000;
-        switch (instance.theme.getValue()) {
-            case "Purple": return 0xFF3E1F4A;
-            case "Gold":   return 0xFF5C4A00;
-            case "White":  return 0xFF666666;
-            case "Green":  return 0xFF0E4A2A;
-            case "Rainbow": return java.awt.Color.HSBtoRGB((System.currentTimeMillis() % 4000L) / 4000f, 1f, 0.3f) | 0xFF000000;
-            case "Custom":  return java.awt.Color.HSBtoRGB((float)instance.customHue.getValue(), 1f, 0.3f) | 0xFF000000;
-            case "Red": default: return 0xFF330000;
-        }
+        int rgb = getThemeColor();
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+        // Darken by 70%
+        return 0xFF000000 | ((int)(r * 0.3f) << 16) | ((int)(g * 0.3f) << 8) | (int)(b * 0.3f);
     }
 
     @Override

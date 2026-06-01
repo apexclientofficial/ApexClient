@@ -5,6 +5,7 @@ import com.apex.client.setting.BooleanSetting;
 import com.apex.client.setting.NumberSetting;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
@@ -45,10 +46,10 @@ public class Nametags extends Module {
             double z = player.field_70136_U + (player.field_70161_v - player.field_70136_U) * event.partialTicks - mc.func_175598_ae().field_78728_n;
 
             String name = player.func_70005_c_();
-            if (health.isEnabled()) name += " §c" + (int)player.func_110143_aJ() + "§7hp";
+            if (health.isEnabled()) name += " \u00a7c" + (int)player.func_110143_aJ() + "\u00a77hp";
             if (distance.isEnabled()) {
                 int dist = (int)mc.field_71439_g.func_70032_d(player);
-                name += " §7[" + dist + "m]";
+                name += " \u00a77[" + dist + "m]";
             }
 
             GlStateManager.func_179094_E();
@@ -60,10 +61,21 @@ public class Nametags extends Module {
             GlStateManager.func_179147_l();
             GlStateManager.func_179132_a(false);
             int sw = mc.field_71466_p.func_78256_a(name);
+            
+            // Draw background
+            net.minecraft.client.gui.Gui.func_73734_a(-sw / 2 - 2, -2, sw / 2 + 2, 9, 0x55000000);
+            
             mc.field_71466_p.func_175063_a(name, -sw / 2f, 0, 0xFFFFFFFF);
             GlStateManager.func_179132_a(true);
             GlStateManager.func_179126_j();
             GlStateManager.func_179121_F();
+        }
+    }
+
+    @SubscribeEvent
+    public void onRenderLivingPre(net.minecraftforge.client.event.RenderLivingEvent.Specials.Pre<EntityLivingBase> event) {
+        if (event.entity instanceof EntityPlayer && event.entity != mc.field_71439_g) {
+            event.setCanceled(true); // Cancel vanilla nametag rendering
         }
     }
 }

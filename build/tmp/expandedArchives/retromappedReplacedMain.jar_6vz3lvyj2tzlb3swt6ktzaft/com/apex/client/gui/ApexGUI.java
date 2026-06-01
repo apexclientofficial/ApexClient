@@ -7,7 +7,9 @@ import com.apex.client.setting.ModeSetting;
 import com.apex.client.setting.NumberSetting;
 import com.apex.client.setting.Setting;
 import com.apex.client.setting.StringSetting;
+import com.apex.client.setting.ButtonSetting;
 import com.apex.client.setting.KeybindSetting;
+import com.apex.client.setting.ColorSetting;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
@@ -38,6 +40,8 @@ public class ApexGUI extends GuiScreen {
     private static final int SETTING_H_MODE = 20;
     private static final int SETTING_H_BIND = 20;
     private static final int SETTING_H_STR  = 20;
+    private static final int SETTING_H_BTN  = 20;
+    private static final int SETTING_H_COL  = 42;
 
     // Slide out
     private Module selectedModule = null;
@@ -46,6 +50,11 @@ public class ApexGUI extends GuiScreen {
     // Slider drag
     private NumberSetting draggingSlider = null;
     private int draggingSliderX, draggingSliderW;
+
+    // Color drag
+    private ColorSetting draggingColor = null;
+    private int draggingColorChannel = 0; // 0=R, 1=G, 2=B
+    private int draggingColorX, draggingColorW;
 
     // Keybind state
     private KeybindSetting listeningBind = null;
@@ -87,8 +96,8 @@ public class ApexGUI extends GuiScreen {
         int panelY = PANEL_Y_OFFSET;
         int panelH = sh - PANEL_Y_OFFSET * 2;
 
-        int themeCol = com.apex.client.module.misc.ClickGUIModule.getThemeColor();
-        int themeColDark = com.apex.client.module.misc.ClickGUIModule.getThemeColorDark();
+        int themeCol = com.apex.client.module.misc.HUDColor.getColor();
+        int themeColDark = com.apex.client.module.misc.HUDColor.getColorDark();
 
         // ----------- Icon sidebar -----------
         func_73734_a(PANEL_X_OFFSET, PANEL_Y_OFFSET, PANEL_X_OFFSET + ICON_BAR_WIDTH, PANEL_Y_OFFSET + panelH, 0xEE0D0D0D);
@@ -131,7 +140,7 @@ public class ApexGUI extends GuiScreen {
 
         // Category title header
         func_73734_a(panelX, panelY, panelX + MODULE_LIST_WIDTH, panelY + 26, 0xEE191919);
-        String catName = currentCategory.name;
+        String catName = getCategoryIcon(currentCategory);
         field_146297_k.field_71466_p.func_175063_a(catName, panelX + 8, panelY + 9, 0xFFFFFFFF);
         func_73734_a(panelX, panelY + 25, panelX + MODULE_LIST_WIDTH, panelY + 26, themeColDark);
 
@@ -232,8 +241,17 @@ public class ApexGUI extends GuiScreen {
                         field_146297_k.field_71466_p.func_78276_b(s.getName() + ":", setX + 8, setY + 3, 0xFFDDDDDD);
                         String val = m2.getValue();
                         int vw = field_146297_k.field_71466_p.func_78256_a(val);
-                        field_146297_k.field_71466_p.func_78276_b(val, setX + setW - vw - 8, setY + 3, themeCol);
+                        field_146297_k.field_71466_p.func_78276_b(val + (m2.isOpen() ? " \u25b2" : " \u25bc"), setX + setW - vw - 18, setY + 3, themeCol);
                         setY += SETTING_H_MODE;
+                        
+                        if (m2.isOpen()) {
+                            for (String mode : m2.getModes()) {
+                                boolean isSelected = mode.equals(m2.getValue());
+                                func_73734_a(setX + 4, setY, setX + setW - 4, setY + 16, 0xFF181818);
+                                field_146297_k.field_71466_p.func_78276_b((isSelected ? "> " : "") + mode, setX + 16, setY + 4, isSelected ? themeCol : 0xFF888888);
+                                setY += 16;
+                            }
+                        }
                     } else if (s instanceof KeybindSetting) {
                         KeybindSetting k = (KeybindSetting) s;
                         field_146297_k.field_71466_p.func_78276_b("Bind:", setX + 8, setY + 3, 0xFFDDDDDD);
@@ -253,6 +271,37 @@ public class ApexGUI extends GuiScreen {
                         }
                         field_146297_k.field_71466_p.func_78276_b(val, setX + setW - vw - 8, setY + 3, (listeningString == str) ? 0xFFFFFFFF : themeCol);
                         setY += SETTING_H_STR;
+                    } else if (s instanceof ButtonSetting) {
+                        // Draw a clickable button
+                        boolean hov = mouseX >= setX + 8 && mouseX < setX + setW - 8
+                                && mouseY >= setY + 1 && mouseY < setY + SETTING_H_BTN - 1;
+                        func_73734_a(setX + 8, setY + 1, setX + setW - 8, setY + SETTING_H_BTN - 1,
+                                hov ? themeCol : themeColDark);
+                        int tw = field_146297_k.field_71466_p.func_78256_a(s.getName());
+                        field_146297_k.field_71466_p.func_175063_a(s.getName(),
+                                setX + (setW - tw) / 2, setY + 4, 0xFFFFFFFF);
+                        setY += SETTING_H_BTN;
+                    } else if (s instanceof ColorSetting) {
+                        ColorSetting c = (ColorSetting) s;
+                        field_146297_k.field_71466_p.func_78276_b(s.getName() + ":", setX + 8, setY + 3, 0xFFDDDDDD);
+                        
+                        // Draw Preview Box
+                        func_73734_a(setX + setW - 25, setY + 3, setX + setW - 8, setY + 12, c.getRGB() | 0xFF000000);
+                        
+                        int sliderX = setX + 8;
+                        int sliderW = setW - 16;
+                        
+                        // R
+                        func_73734_a(sliderX, setY + 16, sliderX + sliderW, setY + 20, 0xFF333333);
+                        func_73734_a(sliderX, setY + 16, sliderX + (int)(sliderW * (c.getR()/255f)), setY + 20, 0xFFFF0000);
+                        // G
+                        func_73734_a(sliderX, setY + 24, sliderX + sliderW, setY + 28, 0xFF333333);
+                        func_73734_a(sliderX, setY + 24, sliderX + (int)(sliderW * (c.getG()/255f)), setY + 28, 0xFF00FF00);
+                        // B
+                        func_73734_a(sliderX, setY + 32, sliderX + sliderW, setY + 36, 0xFF333333);
+                        func_73734_a(sliderX, setY + 32, sliderX + (int)(sliderW * (c.getB()/255f)), setY + 36, 0xFF0000FF);
+                        
+                        setY += SETTING_H_COL;
                     }
                     // Separator
                     func_73734_a(setX + 4, setY - 1, setX + setW - 4, setY, 0x22FFFFFF);
@@ -266,6 +315,17 @@ public class ApexGUI extends GuiScreen {
             draggingSlider.setFromPercentage(pct);
         } else {
             draggingSlider = null;
+        }
+
+        // Handle dragging color
+        if (draggingColor != null && Mouse.isButtonDown(0)) {
+            double pct = Math.max(0, Math.min(1, (double)(mouseX - draggingColorX) / draggingColorW));
+            int val = (int)(255 * pct);
+            if (draggingColorChannel == 0) draggingColor.setR(val);
+            else if (draggingColorChannel == 1) draggingColor.setG(val);
+            else if (draggingColorChannel == 2) draggingColor.setB(val);
+        } else {
+            draggingColor = null;
         }
 
         super.func_73863_a(mouseX, mouseY, partialTicks);
@@ -283,11 +343,11 @@ public class ApexGUI extends GuiScreen {
 
     private String getCategoryIcon(Module.Category cat) {
         switch (cat) {
-            case COMBAT:   return "COMBAT";
-            case MOVEMENT: return "MOVEMENT";
-            case PLAYER:   return "PLAYER";
-            case RENDER:   return "RENDER";
-            case MISC:     return "MISC";
+            case COMBAT:   return "\u2694 Combat";
+            case MOVEMENT: return "\ud83d\udc5f Movement";
+            case PLAYER:   return "\ud83d\udc64 Player";
+            case RENDER:   return "\ud83d\udc41 Render";
+            case MISC:     return "\u2699 Misc";
             default:       return cat.name;
         }
     }
@@ -370,16 +430,24 @@ public class ApexGUI extends GuiScreen {
                     } else if (s instanceof ModeSetting) {
                         ModeSetting m2 = (ModeSetting) s;
                         if (mouseY >= setY && mouseY < setY + SETTING_H_MODE) {
-                            if (mouseButton == 0) m2.cycle();
-                            else {
-                                // Cycle backwards
-                                List<String> modes = m2.getModes();
-                                int idx = modes.indexOf(m2.getValue());
-                                m2.setValue(modes.get((idx - 1 + modes.size()) % modes.size()));
-                            }
+                            m2.setOpen(!m2.isOpen());
                             return;
                         }
                         setY += SETTING_H_MODE;
+                        if (m2.isOpen()) {
+                            for (String mode : m2.getModes()) {
+                                if (mouseY >= setY && mouseY < setY + 16 && mouseX >= setX && mouseX <= setX + setW) {
+                                    m2.setValue(mode);
+                                    m2.setOpen(false);
+                                    // If this is the Config module's "Load Config" dropdown, trigger load
+                                    if (s.getName().equals("Load Config") && selectedModule instanceof com.apex.client.module.misc.Config) {
+                                        ((com.apex.client.module.misc.Config) selectedModule).loadSelected();
+                                    }
+                                    return;
+                                }
+                                setY += 16;
+                            }
+                        }
                     } else if (s instanceof KeybindSetting) {
                         KeybindSetting k = (KeybindSetting) s;
                         if (mouseY >= setY && mouseY < setY + SETTING_H_BIND) {
@@ -402,6 +470,27 @@ public class ApexGUI extends GuiScreen {
                             return;
                         }
                         setY += SETTING_H_STR;
+                    } else if (s instanceof ButtonSetting) {
+                        if (mouseY >= setY + 1 && mouseY < setY + SETTING_H_BTN - 1
+                                && mouseX >= setX + 8 && mouseX < setX + setW - 8) {
+                            ((ButtonSetting) s).click();
+                            return;
+                        }
+                        setY += SETTING_H_BTN;
+                    } else if (s instanceof ColorSetting) {
+                        ColorSetting c = (ColorSetting) s;
+                        int sliderX = setX + 8;
+                        int sliderW = setW - 16;
+                        if (mouseX >= sliderX && mouseX < sliderX + sliderW) {
+                            if (mouseY >= setY + 16 && mouseY < setY + 20) {
+                                draggingColor = c; draggingColorChannel = 0; draggingColorX = sliderX; draggingColorW = sliderW;
+                            } else if (mouseY >= setY + 24 && mouseY < setY + 28) {
+                                draggingColor = c; draggingColorChannel = 1; draggingColorX = sliderX; draggingColorW = sliderW;
+                            } else if (mouseY >= setY + 32 && mouseY < setY + 36) {
+                                draggingColor = c; draggingColorChannel = 2; draggingColorX = sliderX; draggingColorW = sliderW;
+                            }
+                        }
+                        setY += SETTING_H_COL;
                     }
                 }
             }
