@@ -60,24 +60,24 @@ Get access to announcements, changelogs, config sharing, and direct support.
 
 ## Included Modules
 
-ApexClient comes equipped with a suite of modules built for performance and customization.
+ApexClient comes equipped with a comprehensive suite of modules built for performance, control, and customization.
 
-| Combat | Movement & Physics | Visuals & Render | Player, World & Misc |
-| :--- | :--- | :--- | :--- |
-| **KillAura** | **Sprint** | **ESP** | **ChestStealer** |
-| **Triggerbot** | **Speed** | **Tracers** | **AutoArmor** |
-| **Velocity** | **Fly** | **Nametags** | **AutoTotem** |
-| **Reach** | **NoFall** | **ItemESP** | **AutoSoup** |
-| **AutoClicker** | **Jesus** | **Chams** | **AutoRespawn** |
-| **Criticals** | **Step** | **Xray** | **FastPlace** |
-| **HitBox** | **Phase** | **FullBright** | **FastBreak** |
-| **AimAssist** | **InventoryWalk** | **Freecam** | **Timer** |
-| **Backtrack** | **Sneak** | **ClickGUI** | **Regen** |
-| **AntiBot** | **Scaffold** | **HUD** | **HandView** |
-| **AntiTeam** | | **KillEffects** | **AutoTool** |
-| | | **ParticleTrails** | **PotionStatus** |
-| | | **FovRing** | **Notifications** |
-| | | **Starfall** | **Packet Manipulation** |
+| Rage & Combat | Movement & Physics | Player & Utility | Visuals & Render | Misc & System |
+| :--- | :--- | :--- | :--- | :--- |
+| **Aura (KillAura)** | **Sprint** | **ChestStealer** | **ESP** | **HUD** |
+| **Spinbot** | **Speed** | **FastPlace** | **Tracers** | **HUDColor** |
+| **Fucker** | **Fly** | **FastBreak** | **Nametags** | **ClickGUI** |
+| **Reach** | **NoFall** | **AutoArmor** | **ItemESP** | **Config** |
+| **TriggerBot** | **Scaffold** | **AutoSoup** | **Chams** | **PacketSpoof** |
+| **AimAssist** | **InventoryMove** | **AutoRespawn** | **Xray** | **PotionStatus** |
+| **Aimbot** | **Jesus** | **Regen** | **FullBright** | **Notifications** |
+| **Velocity** | **Step** | **AutoTool** | **HandView** | |
+| **AutoClicker** | **Phase** | | **TargetHUD** | |
+| **Criticals** | **Sneak** | | **Starfall** | |
+| **AntiBot** | **NoSlow** | | **KillEffects** | |
+| **HitBox** | **Timer** | | **ParticleTrails** | |
+| **Backtrack** | **Freecam** | | **FovRing** | |
+| | **SpamSneak** | | | |
 
 ---
 
